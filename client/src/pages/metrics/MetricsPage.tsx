@@ -1,12 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, LineChart } from '@databricks/appkit-ui/react';
+import { useAnalyticsQuery, Card, CardContent, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, LineChart } from '@databricks/appkit-ui/react';
 import { sql } from '@databricks/appkit-ui/js';
 import { useMemo, useState } from 'react';
 import { useTelemetryConfig } from '../../context/TelemetryConfigContext';
 import { DateRangeFilter } from '../../components/DateRangeFilter';
 import { useDateRange } from '../../lib/useDateRange';
-import { useArrowQuery } from '../../lib/useArrowQuery';
-
-interface MetricName { name: string; metric_type: string; description: string }
 
 export function MetricsPage() {
   const { metricsTable, isConfigured } = useTelemetryConfig();
@@ -28,7 +25,9 @@ export function MetricsPage() {
     [metricsTable, selectedMetric, startDate, endDate],
   );
 
-  const { data: names, loading: namesLoading } = useArrowQuery<MetricName>('otel_metrics_names', namesParams, {
+  interface MetricName { name: string; metric_type: string; description: string }
+
+  const { data: names, loading: namesLoading } = useAnalyticsQuery<MetricName[]>('otel_metrics_names', namesParams, {
     autoStart: isConfigured,
   });
 
@@ -36,7 +35,7 @@ export function MetricsPage() {
     return <div className="text-muted-foreground text-center mt-12">Configure your telemetry tables above to get started.</div>;
   }
 
-  const metricNames = names ?? [];
+  const metricNames = (Array.isArray(names) ? names : []) as MetricName[];
   const selectedDesc = metricNames.find((m) => m.name === selectedMetric)?.description;
 
   return (
@@ -70,7 +69,6 @@ export function MetricsPage() {
             <LineChart
               queryKey="otel_metrics"
               parameters={chartParams}
-              format="arrow"
               xKey="time"
               yKey="value"
               height={320}

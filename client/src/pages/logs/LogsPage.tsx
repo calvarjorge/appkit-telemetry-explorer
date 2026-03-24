@@ -1,9 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle, Skeleton, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@databricks/appkit-ui/react';
+import { useAnalyticsQuery, Card, CardContent, CardHeader, CardTitle, Skeleton, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@databricks/appkit-ui/react';
 import { sql } from '@databricks/appkit-ui/js';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { useTelemetryConfig } from '../../context/TelemetryConfigContext';
-import { useArrowQuery } from '../../lib/useArrowQuery';
 import { SeverityBadge } from '../../components/SeverityBadge';
 import { DateRangeFilter } from '../../components/DateRangeFilter';
 import { useDateRange } from '../../lib/useDateRange';
@@ -40,8 +39,12 @@ export function LogsPage() {
     [logsTable, isConfigured, startDate, endDate],
   );
 
-  const { data: logs, loading, error } = useArrowQuery<{ time: string; severity_text: string; body: string; service_name: string; trace_id: string | null }>('otel_logs', logsParams, { autoStart: isConfigured });
-  const { data: counts } = useArrowQuery<{ severity_text: string; count: number }>('otel_logs_severity_counts', countsParams, { autoStart: isConfigured });
+  const logsQuery = useAnalyticsQuery('otel_logs', logsParams, { autoStart: isConfigured });
+  const countsQuery = useAnalyticsQuery('otel_logs_severity_counts', countsParams, { autoStart: isConfigured });
+
+  const logs = logsQuery.data as Array<{ time: string; severity_text: string; body: string; service_name: string; trace_id: string | null }> | null;
+  const counts = countsQuery.data as Array<{ severity_text: string; count: number }> | null;
+  const { loading, error } = logsQuery;
 
   if (!isConfigured) {
     return <div className="text-muted-foreground text-center mt-12">Configure your telemetry tables above to get started.</div>;

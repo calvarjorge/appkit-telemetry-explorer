@@ -1,9 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle, Skeleton, Button, Badge } from '@databricks/appkit-ui/react';
+import { useAnalyticsQuery, Card, CardContent, CardHeader, CardTitle, Skeleton, Button, Badge } from '@databricks/appkit-ui/react';
 import { sql } from '@databricks/appkit-ui/js';
 import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTelemetryConfig } from '../../context/TelemetryConfigContext';
-import { useArrowQuery } from '../../lib/useArrowQuery';
 import { TraceWaterfall } from '../../components/TraceWaterfall';
 import type { Span } from '../../components/TraceWaterfall';
 
@@ -46,9 +45,11 @@ export function TraceDetailPage() {
     [spansTable, isConfigured, traceId],
   );
 
-  const { data: spans, loading, error } = useArrowQuery<Span>('otel_trace', params, {
+  const traceQuery = useAnalyticsQuery('otel_trace', params, {
     autoStart: isConfigured && !!traceId,
   });
+  const spans = traceQuery.data as Span[] | null;
+  const { loading, error } = traceQuery;
 
   const totalDuration = spans && spans.length > 0
     ? (Math.max(...spans.map(s => Number(s.end_time_unix_nano))) - Math.min(...spans.map(s => Number(s.start_time_unix_nano)))) / 1_000_000

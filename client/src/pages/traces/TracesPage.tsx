@@ -1,9 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle, Skeleton, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Badge, ScrollArea, Switch, Label } from '@databricks/appkit-ui/react';
+import { useAnalyticsQuery, Card, CardContent, CardHeader, CardTitle, Skeleton, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Badge, ScrollArea, Switch, Label } from '@databricks/appkit-ui/react';
 import { sql } from '@databricks/appkit-ui/js';
 import { useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useTelemetryConfig } from '../../context/TelemetryConfigContext';
-import { useArrowQuery } from '../../lib/useArrowQuery';
 import { DateRangeFilter } from '../../components/DateRangeFilter';
 
 function todayStr() {
@@ -52,7 +51,9 @@ export function TracesPage() {
     [spansTable, isConfigured, startDate, endDate, service, rootsOnly],
   );
 
-  const { data: spans, loading, error } = useArrowQuery<{ time: string; name: string; kind: string; service_name: string; duration_ms: number; trace_id: string }>('otel_spans', params, { autoStart: isConfigured });
+  const spansQuery = useAnalyticsQuery('otel_spans', params, { autoStart: isConfigured });
+  const spans = spansQuery.data as Array<{ time: string; name: string; kind: string; service_name: string; duration_ms: number; trace_id: string }> | null;
+  const { loading, error } = spansQuery;
 
   if (!isConfigured) {
     return <div className="text-muted-foreground text-center mt-12">Configure your telemetry tables above to get started.</div>;
