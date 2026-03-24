@@ -1,4 +1,4 @@
-import { useAnalyticsQuery, Card, CardContent, CardHeader, CardTitle, Skeleton, Button, Badge, ScrollArea } from '@databricks/appkit-ui/react';
+import { useAnalyticsQuery, Card, CardContent, CardHeader, CardTitle, Skeleton, Button, Badge } from '@databricks/appkit-ui/react';
 import { sql } from '@databricks/appkit-ui/js';
 import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
@@ -13,13 +13,6 @@ function tryParseJson(val: unknown): unknown {
     try { return JSON.parse(val); } catch { return val; }
   }
   return val;
-}
-
-function formatJson(val: unknown): string {
-  const parsed = tryParseJson(val);
-  if (parsed == null) return '—';
-  if (typeof parsed === 'object') return JSON.stringify(parsed, null, 2);
-  return String(parsed);
 }
 
 function JsonSection({ label, data }: { label: string; data: unknown }) {
